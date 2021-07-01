@@ -1,12 +1,17 @@
 const express = require("express");
 const cookieParser = require("cookie-parser");
+const jwt = require("jsonwebtoken");
 const app = express();
+
+const connection = require("./db/config");
+const bcrypt = require("bcrypt");
 
 app.use(express.json());
 app.use(cookieParser());
 
 const tasksRouter = require("./routes/tasks-route");
 const authRouter = require("./routes/auth-route");
+const { getAllUsers } = require("./controllers/auth-controller");
 
 app.use("/todos", tasksRouter);
 
@@ -26,13 +31,14 @@ app.post("/login", (req, res, next) => {
           results[0].password
         );
         if (isPasswordEqual && email === results[0].email) {
-          const token = res
+          const token = jwt.sign({ id: results[0].iduser }, "your-secret-key");
+
+          res
             .status(200)
-            .cookie("login", true, {
+            .cookie("token", token, {
               httpOnly: true,
-              expires: new Date(Date.now() + 30000),
             })
-            .json({ message: "Welcome" });
+            .json({ id: results[0].iduser });
         } else {
           res.status(401).send("Wrong credentials");
         }
@@ -42,16 +48,24 @@ app.post("/login", (req, res, next) => {
 });
 
 const authentication = (req, res, next) => {
-  if (req.cookies.login === "true") {
-    console.log("user is logged in");
-    next();
+  if (!req.cookies.token) {
+    res.send("something went wrong :(");
   } else {
-    res.status(403).send("unauthorized");
+    jwt.verify(req.cookies.token, "your-secret-key", (err, decoded) => {
+      if (err) {
+        res.send("wrong access");
+      }
+      req.userId = decoded.id;
+      next();
+    });
   }
 };
 
 app.get("/secret", authentication, (req, res, next) => {
   res.send("Welcome to the secret route");
 });
+
+
+app.get("/users", authentication, getAllUsers)
 
 app.listen(5000, () => console.log("Server running on port 5000"));
