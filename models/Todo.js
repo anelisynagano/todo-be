@@ -28,4 +28,24 @@ Todo.addToDoTask = (description, callback) => {
   );
 };
 
+Todo.editToDoTask = (id, editedInfo, callback) => {
+  connection.query(
+    "UPDATE to_do SET ? WHERE idto_do=?",
+    [editedInfo, id],
+    (err, results) => {
+      callback(err, results);
+    }
+  );
+};
+
+Todo.deleteToDoTask = (id, callback) => {
+  connection.query(
+    "DELETE FROM to_do WHERE idto_do=?",
+    [id],
+    (err, results) => {
+      callback(err, results);
+    }
+  );
+};
+
 module.exports = Todo;

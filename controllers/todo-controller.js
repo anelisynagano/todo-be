@@ -42,4 +42,26 @@ const addToDo = (req, res, next) => {
   });
 };
 
-module.exports = { getAll, getById, addToDo };
+const editToDo = (req, res) => {
+  const { id } = req.params;
+  Todo.editToDoTask(id, req.body, (err, results) => {
+    if (err) {
+      res.status(500).send(`Error editing task: ${err}`);
+    } else {
+      res.sendStatus(204);
+    }
+  });
+};
+
+const deleteToDo = (req, res) => {
+  const { id } = req.params;
+  Todo.deleteToDoTask(id, (err, results) => {
+    if (err) {
+      res.status(500).send(`Error deleting task: ${err}`);
+    } else {
+      res.sendStatus(204);
+    }
+  });
+};
+
+module.exports = { getAll, getById, addToDo, editToDo, deleteToDo };
